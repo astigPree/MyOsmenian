@@ -1,10 +1,10 @@
 __version__ = "1.0"
 
-# from android.permissions import request_permissions , Permission , check_permission
+#from android.permissions import request_permissions , Permission
+#request_permissions( [ Permission.INTERNET ,
+#	Permission.READ_EXTERNAL_STORAGE ,
+#	Permission.WRITE_EXTERNAL_STORAGE ])
 
-from kivy.core.window import Window
-# Set the window size to 400x400
-Window.size = (1800 / 4, 2200 / 4)
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager , Screen
@@ -103,10 +103,6 @@ class AnimateFinding(ModalView) :
 		
 # ====> Screen 1 : Finding Partner
 class FindingPartner(Screen) :
-
-	ADDR = "localhost"
-	PORT = 4567
-
 	gender = ""
 	question = ""
 	
@@ -125,7 +121,7 @@ class FindingPartner(Screen) :
 		self.confirmPopup.bind(on_dismiss=self.resetData)
 	
 	def checkIsReady(self , *args) :
-		condition =  self.gender != "" and self.question != ""
+		condition = self.ids["addr"].text != "" and self.ids["port"].text != "" and self.ids["port"].text.isdigit() and self.gender != "" and self.question != ""	
 		
 		if condition and not self.confirmPopup.isOpen :
 			self.confirmPopup.selectedData( f"( {self.gender} , {self.question.capitalize()} )")
@@ -152,7 +148,7 @@ class FindingPartner(Screen) :
 	def sendTheData(self , gender : str , question : str )  :
 		data = { "id" : self.parent.appData.get_id() , "find" : gender , "question" : question }
 		try :
-			if not self.dataTransfer.connect( self.ADDR , self.PORT) :
+			if not self.dataTransfer.connect( self.ids["addr"].text , int(self.ids["port"].text)) :
 				raise Exception("ConnectionError")
 		except Exception :
 			self.dataIsSent =  "ConnectionError"
@@ -287,17 +283,12 @@ class Penalized(ModalView) :
 				self.ids["mytime"].text = f"Penalized : {second - 1}s"
 			else :
 				self.dismiss()
-
-# ====> Penalized Widget
-class CheckPermission(ModalView) :
-	isOpen = False
-
+		
+	
 # ====> ScreenManager
 class MainWidget(ScreenManager) :
 	appData = AppData()
-
-	granted = False
-	manage_data = False
+	
 	server_data : dict = {}
 	
 	def __init__(self , **kwargs) :
@@ -305,21 +296,17 @@ class MainWidget(ScreenManager) :
 		self.closePopup = ExitApplication()
 		self.penalizedPopup = Penalized()
 		self.penalizedPopup.bind( on_dismiss = self.completePenalized )
-		self.permissionPopup = CheckPermission()
-
+		
 		self.add_widget( FindingPartner( name = "screen1"))
 		self.add_widget( TalkingPartner( name = "screen2"))
 		#self.add_widget( FindingPartner( name = "screen1")) # Debugging
-		Clock.schedule_interval(self.starting , 1 / 50)
+		self.starting()
 		
-	def starting(self, interval ):
-		self.checkingPermission()
-		if self.granted and not self.manage_data :
-			self.manage_data = True
-			Clock.schedule_once(self.appData.create )
-			Clock.schedule_once(self.appData.used_the_app , 3)
-			Clock.schedule_once(self.isPenalized , .5)
-
+	def starting(self ):
+		Clock.schedule_once(self.appData.create , 1 )
+		Clock.schedule_once(self.appData.used_the_app , 3)
+		Clock.schedule_once(self.isPenalized , 1)
+	
 	def isPenalized(self , *args) :
 		if self.appData.get_penalized_info() == 1 :
 			self.penalizedPopup.isReady = True
@@ -333,19 +320,6 @@ class MainWidget(ScreenManager) :
 		if self.current == "screen1" and not self.get_screen("screen1").findingPopup.isOpen :
 			self.closePopup.open()
 
-	def checkingPermission(self):
-		if self.granted:
-			return
-		# if check_permission('android.permission.WRITE_EXTERNAL_STORAGE') and check_permission('android.permission.READ_EXTERNAL_STORAGE') :
-		# 	self.granted = True
-		if self.granted:
-			if self.permissionPopup.isOpen:
-				self.permissionPopup.isOpen = False
-				self.permissionPopup.dismiss()
-			return
-		if not self.permissionPopup.isOpen:
-			self.permissionPopup.isOpen = True
-			self.permissionPopup.open()
 
 # ====> App
 class MyOsmenianApp(App) :
@@ -355,12 +329,7 @@ class MyOsmenianApp(App) :
 		
 	def on_stop(self) :
 		self.root.appData.save_data()
-
-	def on_start(self):
-		pass
-		# if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') and not check_permission('android.permission.READ_EXTERNAL_STORAGE') :
-		# 	request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
-		#
+	
 	def build(self) :
 		Window.bind(on_keyboard=self.key_input)
 		return Builder.load_file("MyDesign.kv")

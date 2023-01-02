@@ -30,6 +30,8 @@ def myInfo() -> str :
 		"My Osmenia App Is For Fun Only So Be Careful Of What You Does Because We Are Not Responsible Of What Happen To You While Using This App" ,
 		"" ,
 		"Directions :" ,
+		"   - Enter Server ADDR" ,
+		"   - Enter Server PORT" ,
 		"   - Click The Gender You Want To Meet" ,
 		"   - Click The Type Of Question You Want To Ask" ,
 		"   - There Is Popup Will Appear " ,

@@ -2,32 +2,6 @@
 
 MainWidget :
 
-<CheckPermission> :
-    auto_dismiss : False
-	background_color : 0 , 0 , 0 , 0
-	size_hint : 0.8 , 0.4
-	overlay_color : 0 , 0 ,0 , .4
-
-	BoxLayout :
-		orientation : "vertical"
-
-		canvas.before :
-			Color :
-				rgba : ghex("d7e5ec")
-			RoundedRectangle:
-				pos : self.pos
-				size : self.size
-				radius : [20,]
-
-	Label:
-        text_size : self.width - dp(10) , None
-        height : self.texture_size[1]
-        halign : "center"
-        color : 0 , 0 , 0 ,1
-        font_name : "cupid.ttf"
-        text : "Please allow the permission needed to successfully use My Osmenian"
-        font_size : sp(25)
-
 <ExitApplication> :
 	auto_dismiss : False
 	background_color : 0 , 0 , 0 , 0
@@ -36,7 +10,7 @@ MainWidget :
 	
 	BoxLayout :
 		orientation : "vertical"
-
+		
 		canvas.before :
 			Color :
 				rgba : ghex("d7e5ec")
@@ -121,7 +95,9 @@ MainWidget :
 			
 # ==== > Screen 1
 <FindingPartner> :
-
+	addr : addr.__self__
+	port : port.__self__
+	
 	canvas.before :
 		Rectangle :
 			pos : self.pos
@@ -129,7 +105,56 @@ MainWidget :
 			source : "cupid.jpeg"
 	
 	FloatLayout :
-
+		
+		# ------> IP Widget
+		GridLayout :
+			size_hint : 0.5 , None
+			height : 180
+			pos_hint : {"x" : 0.45 , "top" : .98}
+			rows : 2
+			cols : 2
+			padding : dp(3)
+			spacing : dp(3)
+			
+			canvas.before :
+				Color :
+					rgb : ghex("d7e5ec")
+					a : 0.8
+				RoundedRectangle :
+					pos : self.pos
+					size : self.size
+					radius : (20,)
+			
+			Label :
+				size_hint : 0.3 , 1
+				markup : True
+				text : "ADDR :"
+				color : 0 , 0 , 0 ,1
+				font_name : "cupid.ttf"
+			TextInput :
+				size_hint : 0.7 , 1
+				multiline : False
+				background_color : ghex("d7e5ec")
+				background_down : ""
+				font_size : sp(15)
+				id : addr
+				text : "0.tcp.ap.ngrok.io"
+				#text : "localhost"
+			Label :
+				size_hint : 0.3 , 1
+				text : "PORT :"
+				color : 0 , 0 , 0 ,1
+				font_name : "cupid.ttf"
+			TextInput :
+				size_hint : 0.7 , 1
+				multiline : False
+				padding_x : 2
+				background_color : ghex("d7e5ec")
+				background_down : ""
+				font_size : sp(15)
+				id : port
+				text : "13321"
+		
 		# ------> App Name Widget
 		Label :
 			size_hint : 0.9 , 0.3
