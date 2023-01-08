@@ -1,6 +1,12 @@
 #:import ghex kivy.utils.get_color_from_hex
 
 MainWidget :
+    canvas.before :
+        Color :
+            rgba : ghex('FFe7e7')
+        Rectangle:
+            pos : self.pos
+            size : self.size
 
 <CheckPermission> :
     auto_dismiss : False
@@ -105,7 +111,7 @@ MainWidget :
 			halign : "center"
 			color : 0 , 0 , 0 ,1
 			font_name : "cupid.ttf"
-			text : "Please Don't Leave The App When You Are In Finding , Because There Are People Who's Waiting For You "
+			text : "Please Don't Leave The App When You Are In Finding The Person , Because There Are People Who's Waiting For You "
 			font_size : sp(25)
 			
 		Label:

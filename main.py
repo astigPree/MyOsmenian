@@ -15,6 +15,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.utils import get_color_from_hex as ghex
 from kivy.core.image import Image as CoreImage
+from kivy.core.audio import SoundLoader
 from kivy.lang import Builder
 
 from threading import Thread
@@ -318,6 +319,7 @@ class MainWidget(ScreenManager) :
 	granted = False
 	manage_data = False
 	server_data : dict = {}
+	sound = None
 	
 	def __init__(self , **kwargs) :
 		super(MainWidget , self).__init__(**kwargs)
@@ -334,7 +336,8 @@ class MainWidget(ScreenManager) :
 		self.checkingPermission()
 		if self.granted and not self.manage_data :
 			self.manage_data = True
-			Clock.schedule_once(self.appData.create_secured() )
+			Clock.schedule_once(self.startPlayingMusic)
+			Clock.schedule_once(self.appData.create_secured )
 			Clock.schedule_once(self.appData.used_the_app , 3)
 			Clock.schedule_once(self.isPenalized , .5)
 
@@ -364,6 +367,14 @@ class MainWidget(ScreenManager) :
 		if not self.permissionPopup.isOpen:
 			self.permissionPopup.isOpen = True
 			self.permissionPopup.open()
+
+	def startPlayingMusic(self, *args):
+		self.sound = SoundLoader.load("Osmenian.mp3")
+		if self.sound:
+			print(self.sound)
+			self.sound.loop = True
+			self.sound.volume = .5
+			self.sound.play()
 
 # ====> App
 class MyOsmenianApp(App) :
