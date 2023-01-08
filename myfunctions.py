@@ -7,31 +7,12 @@ import socket
 from typing import Union
 import pickle
 
-listOfQuestions = [
-		"What do you look for in a friendship?" ,
-		"What is/was your longest lasting friendship and how did it last so long?" ,
-		"Do you think you can have multiple best friends or only one?" ,
-		"Do you think your pet can also be your friend?" , 
-		"Do you consider your parents as friends?" ,
-		"Do you think opposite genders can maintain a friendship without developing a love interest?" ,
-		"What is an unforgivable action?" ,
-		"What is your advice for long-distance friendships?" ,
-		"Do you have different advice for nearby relationships?" ,
-		"Do you think a couple should split costs?" ,
-		"What is the most important thing in a friendship?" ,
-		"What was your best birthday?" ,
-		"Do you prefer family events or alone time?" ,
-		"Provided there is good weather, do you enjoy indoor or outdoor activities?" ,
-		"What is your ideal wedding ceremony?" ,
-	]
 
 def myInfo() -> str :
 	sentences = [ 
 		"My Osmenia App Is For Fun Only So Be Careful Of What You Does Because We Are Not Responsible Of What Happen To You While Using This App" ,
 		"" ,
 		"Directions :" ,
-		"   - Enter Server ADDR" ,
-		"   - Enter Server PORT" ,
 		"   - Click The Gender You Want To Meet" ,
 		"   - Click The Type Of Question You Want To Ask" ,
 		"   - There Is Popup Will Appear " ,
@@ -84,18 +65,18 @@ class DataTransfer :
 			return None
 		
 	def recived(self) -> Union[None , dict] :
-		datas : bytearray = []
-		while True :
-			try :
+		datas : list[bytes] = []
+		try :
+			while True:
 				data : bytes = self.client.recv(self.BYTES)
 				if not data :
 					raise ValueError("No Data ")
 				datas.append(data)
-			except Exception :
-				return None
-			else :
-				if need_data := self.turn_to_dict(datas) :
+				if need_data := self.turn_to_dict(datas):
 					return need_data
+		except Exception :
+			return None
+
 	
 	def close_connection(self) :
 		self.client.close()
@@ -112,19 +93,35 @@ class AppData :
 		filename = os.path.join(self.path , self.filename)
 		with open(filename , "r") as jf :
 			self.__app_data = json.load(jf)
+
+	def get_the_past_data_secured(self):
+		filename = os.path.join(self.path, self.filename)
+		with open(filename, "rb") as pf:
+			self.__app_data = pickle.load(pf)
 	
 	def create(self , *args) :
 		os.makedirs(self.path , exist_ok=True)
 		filename = os.path.join(self.path , self.filename)
 		if not os.path.exists(filename) :
-			with open(filename, "w") as jf :
-				json.dump(self.__app_data , jf)
+			self.save_data()
 		self.get_the_past_data()
-	
+
+	def create_secured(self):
+		os.makedirs(self.path, exist_ok=True)
+		filename = os.path.join(self.path, self.filename)
+		if not os.path.exists(filename):
+			self.save_data_secured()
+		self.get_the_past_data_secured()
+
 	def save_data(self) :
 		filename = os.path.join(self.path , self.filename)
 		with open(filename , "w") as jf:
 			json.dump(self.__app_data , jf)
+
+	def save_data_secured(self):
+		filename = os.path.join(self.path, self.filename)
+		with open(filename, "wb") as pf:
+			pickle.dump(self.__app_data, pf)
 	
 	# ---->  list of activities 
 	def get_id(self , *args) :

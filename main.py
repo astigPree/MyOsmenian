@@ -1,10 +1,9 @@
 __version__ = "1.0"
 
-#from android.permissions import request_permissions , Permission
-#request_permissions( [ Permission.INTERNET ,
-#	Permission.READ_EXTERNAL_STORAGE ,
-#	Permission.WRITE_EXTERNAL_STORAGE ])
+from android.permissions import request_permissions , Permission , check_permission
 
+from kivy.core.window import Window
+Window.size = (1800 / 4, 2200 / 4)
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager , Screen
@@ -71,38 +70,47 @@ class ConfirmSelected(ModalView) :
 		self.ids["info"].text = text
 
 #===> Finding Label
-class AnimateFinding(ModalView) :
-	findingAnimation : Clock = None
+class AnimateFinding(ModalView):
+	findingAnimation: Clock = None
 	found = False
 	isOpen = False
-	def __init__(self , **kwargs) :
-		super(AnimateFinding , self).__init__(**kwargs)
-		Clock.schedule_interval( self.stopAnimate , 1/60)
-	
-	def on_open(self , *args):
+	run_clock = None
+
+	def __init__(self, **kwargs):
+		super(AnimateFinding, self).__init__(**kwargs)
+
+	def on_open(self, *args):
 		self.isOpen = True
-		Clock.schedule_interval(self.animate , 1)
-	
-	def stopAnimate(self , *args) :
-		if self.found :
-			Clock.schedule_once(self.closedPopup , 1)
-	
-	def closedPopup(self , *args) :
-		self.isOpen = False
+		Clock.schedule_interval(self.stopAnimate, 1 / 60)
+		Clock.schedule_once(self.animate, 1)
+
+	def stopAnimate(self, *args):
+		if self.found:
+			self.isOpen = False
+			Clock.schedule_once(self.closedPopup, 1)
+
+	def closedPopup(self, *args):
 		self.dismiss()
-			
-	def animate(self , *args) :
-		if not self.found :
-			if self.ids["mytext"].text == "Finding . . . . ." :
-				self.ids["mytext"].text = "Finding"
-			else :
-				self.ids["mytext"].text += " ."
-		else :
-			pass
-			
+		Clock.schedule_once(self.resetData, 1 / 2)
+
+	def resetData(self, *args):
+		self.ids["mytext"].text = "Finding"
+
+	def animate(self, *args):
+		if not self.found:
+			if "Finding" in self.ids["mytext"].text:
+				if self.ids["mytext"].text == "Finding . . . . .":
+					self.ids["mytext"].text = "Finding"
+				else:
+					self.ids["mytext"].text += " ."
+			Clock.schedule_once(self.animate, 1)
 		
 # ====> Screen 1 : Finding Partner
 class FindingPartner(Screen) :
+
+	ADDR = "localhost"
+	PORT = 4567
+
 	gender = ""
 	question = ""
 	
@@ -121,7 +129,7 @@ class FindingPartner(Screen) :
 		self.confirmPopup.bind(on_dismiss=self.resetData)
 	
 	def checkIsReady(self , *args) :
-		condition = self.ids["addr"].text != "" and self.ids["port"].text != "" and self.ids["port"].text.isdigit() and self.gender != "" and self.question != ""	
+		condition =  self.gender != "" and self.question != ""
 		
 		if condition and not self.confirmPopup.isOpen :
 			self.confirmPopup.selectedData( f"( {self.gender} , {self.question.capitalize()} )")
@@ -133,12 +141,17 @@ class FindingPartner(Screen) :
 			Thread( target=self.sendTheData , args=(self.gender , self.question) ).start()
 			self.confirmPopup.dismiss()
 			self.findingPopup.open()
-		
-		if self.dataIsSent :
+
+		if self.dataIsSent:
 			self.findingPopup.found = True
 			self.findingPopup.ids["mytext"].text = self.dataIsSent
 			self.dataIsSent = None
-			#self.parent.current = "screen2" # Debugging
+		else:
+			self.findingPopup.found = False
+
+		if self.transactionComplete:
+			self.parent.transition.direction = 'right'
+			self.parent.current = "screen2"
 	
 	def resetData(self , *args) :
 		self.confirmPopup.isOpen = False
@@ -148,28 +161,41 @@ class FindingPartner(Screen) :
 	def sendTheData(self , gender : str , question : str )  :
 		data = { "id" : self.parent.appData.get_id() , "find" : gender , "question" : question }
 		try :
-			if not self.dataTransfer.connect( self.ids["addr"].text , int(self.ids["port"].text)) :
+			if not self.dataTransfer.connect( self.ADDR , self.PORT) :
 				raise Exception("ConnectionError")
 		except Exception :
-			self.dataIsSent =  "ConnectionError"
-			return 
-		if not self.dataTransfer.send(data) :
-			self.dataIsSent = "TransferError" 
-			return 
-		
+			self.dataIsSent = "ConnectionError"
+			self.dataTransfer.close_connection()
+			return
+
+		if not self.dataTransfer.send(data):
+			self.dataIsSent = "TransferError"
+			self.dataTransfer.close_connection()
+			return
+
 		self.parent.server_data = self.dataTransfer.recived()
 		print(self.parent.server_data)
-		if not self.parent.server_data :
-			self.dataIsSent = "RecievedError" 
+		if not self.parent.server_data:
+			self.dataIsSent = "RecievedError"
+			self.dataTransfer.close_connection()
 			return
-		
-		if "find" in self.parent.server_data.keys() :
+
+		if "find" in self.parent.server_data.keys():
 			self.dataIsSent = self.parent.server_data["find"]
+			self.dataTransfer.close_connection()
 			return
-		
+
+		if self.gender == "F":
+			confirmation = self.dataTransfer.recived()
+			if not confirmation:
+				self.dataIsSent = "RecievedError"
+				self.dataTransfer.close_connection()
+				self.parent.server_data = {}
+				return
+
 		self.dataTransfer.close_connection()
-		
-		self.parent.current = "screen2"
+		self.dataIsSent = "Lets Enjoy"
+		self.transactionComplete = True
 	
 	def on_pre_leave(self , *args):
 		self.dataIsSent = None
@@ -180,8 +206,6 @@ class FindingPartner(Screen) :
 class ListOfQuestions(Label) :
 	def __init__(self , **kwargs) :
 		super(ListOfQuestions , self).__init__(**kwargs)
-		from myfunctions import listOfQuestions # Debugging
-		self.setQuestions(listOfQuestions) # Debugging
 		
 	def setQuestions(self , questions : list) :
 		for n , question in enumerate(questions):
@@ -205,8 +229,7 @@ class OkeyToBack(ModalView):
 
 # ====> Screen 2 : Talking To The Partner
 class TalkingPartner(Screen) :
-	#seconds = 120
-	seconds = 10 # Debugging
+	seconds = 120
 	isUsed = False
 	displayed = False
 	
@@ -223,9 +246,10 @@ class TalkingPartner(Screen) :
 	def on_pre_enter(self , *args):
 		self.isUsed = True
 		self.parent.appData.leave_the_app()
-		
-	def on_pre_leave(self , *args):
+
+	def on_pre_leave(self, *args):
 		self.isUsed = False
+		self.displayed = False
 		self.ids["mytime"].text = f"Time : {self.seconds}s"
 		self.ids["back"].disabled = True
 		self.ids["back"].opacity = 0
@@ -251,7 +275,7 @@ class TalkingPartner(Screen) :
 		else :
 			data = {}
 			
-		if data and not self.displayed:
+		if data and not self.displayed and self.isUsed:
 			
 			nickname = f"{data['nickname'][0].capitalize()} finding {data['nickname'][1].capitalize()} "
 			self.ids["nickname"].text = nickname
@@ -268,8 +292,7 @@ class TalkingPartner(Screen) :
 
 # ====> Penalized Widget
 class Penalized(ModalView) :
-	#second = 120
-	second = 10 # Debugging
+	second = 120
 	isReady = False
 	
 	def __init__(self , **kwargs) :
@@ -283,12 +306,17 @@ class Penalized(ModalView) :
 				self.ids["mytime"].text = f"Penalized : {second - 1}s"
 			else :
 				self.dismiss()
-		
-	
+
+# ====> Penalized Widget
+class CheckPermission(ModalView) :
+	isOpen = False
+
 # ====> ScreenManager
 class MainWidget(ScreenManager) :
 	appData = AppData()
-	
+
+	granted = False
+	manage_data = False
 	server_data : dict = {}
 	
 	def __init__(self , **kwargs) :
@@ -296,17 +324,20 @@ class MainWidget(ScreenManager) :
 		self.closePopup = ExitApplication()
 		self.penalizedPopup = Penalized()
 		self.penalizedPopup.bind( on_dismiss = self.completePenalized )
-		
+		self.permissionPopup = CheckPermission()
+
 		self.add_widget( FindingPartner( name = "screen1"))
 		self.add_widget( TalkingPartner( name = "screen2"))
-		#self.add_widget( FindingPartner( name = "screen1")) # Debugging
-		self.starting()
+		Clock.schedule_interval(self.starting , 1 / 50)
 		
-	def starting(self ):
-		Clock.schedule_once(self.appData.create , 1 )
-		Clock.schedule_once(self.appData.used_the_app , 3)
-		Clock.schedule_once(self.isPenalized , 1)
-	
+	def starting(self, interval ):
+		self.checkingPermission()
+		if self.granted and not self.manage_data :
+			self.manage_data = True
+			Clock.schedule_once(self.appData.create_secured() )
+			Clock.schedule_once(self.appData.used_the_app , 3)
+			Clock.schedule_once(self.isPenalized , .5)
+
 	def isPenalized(self , *args) :
 		if self.appData.get_penalized_info() == 1 :
 			self.penalizedPopup.isReady = True
@@ -320,16 +351,36 @@ class MainWidget(ScreenManager) :
 		if self.current == "screen1" and not self.get_screen("screen1").findingPopup.isOpen :
 			self.closePopup.open()
 
+	def checkingPermission(self):
+		if self.granted:
+			return
+		if check_permission('android.permission.WRITE_EXTERNAL_STORAGE') and check_permission('android.permission.READ_EXTERNAL_STORAGE') :
+			self.granted = True
+		if self.granted:
+			if self.permissionPopup.isOpen:
+				self.permissionPopup.isOpen = False
+				self.permissionPopup.dismiss()
+			return
+		if not self.permissionPopup.isOpen:
+			self.permissionPopup.isOpen = True
+			self.permissionPopup.open()
 
 # ====> App
 class MyOsmenianApp(App) :
 	
 	def on_pause(self) :
-		Clock.schedule_interval(self.root.get_screen("screen2").reduceMyTime , 1)
+		if self.root.granted:
+			Clock.schedule_interval(self.root.get_screen("screen2").reduceMyTime , 1)
 		
 	def on_stop(self) :
-		self.root.appData.save_data()
-	
+		if self.root.granted :
+			self.root.appData.save_data_secured()
+
+	def on_start(self):
+		pass
+		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') and not check_permission('android.permission.READ_EXTERNAL_STORAGE') :
+			request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
+
 	def build(self) :
 		Window.bind(on_keyboard=self.key_input)
 		return Builder.load_file("MyDesign.kv")
