@@ -38,13 +38,12 @@ def myInfo() -> str :
 
 class DataTransfer :
 	#client_info : { "id" : uuid4() , "find" : ( "M" , "F" ) , "question" : ( "love" , "friend" , "talk")
-	BYTES = 16
-	
-	def __init__(self) :
-		self.client = socket.socket( socket.AF_INET , socket.SOCK_STREAM)
-	
+	BYTES = 32_768
+	client: socket.socket = None
+
 	def connect(self , addr : str , port : int) -> bool :
 		try :
+			self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.client.connect((addr , port))
 		except Exception :
 			return False
@@ -52,7 +51,9 @@ class DataTransfer :
 	
 	def send(self , data : dict) -> bool :
 		try :
-			self.client.sendall(pickle.dumps(data)) 
+			self.client.sendall(pickle.dumps(data))
+		except (BrokenPipeError, ConnectionResetError, TimeoutError, BlockingIOError):
+			return False
 		except Exception :
 			return False
 		return True
@@ -61,7 +62,9 @@ class DataTransfer :
 	def turn_to_dict(data : list[bytes]) -> Union[ None , dict] :
 		try :
 			return pickle.loads(b"".join(data))
-		except Exception :
+		except pickle.UnpicklingError :
+			return None
+		except Exception:
 			return None
 		
 	def recived(self) -> Union[None , dict] :
@@ -69,11 +72,11 @@ class DataTransfer :
 		try :
 			while True:
 				data : bytes = self.client.recv(self.BYTES)
-				if not data :
-					raise ValueError("No Data ")
 				datas.append(data)
 				if need_data := self.turn_to_dict(datas):
 					return need_data
+		except (ConnectionRefusedError, ConnectionAbortedError, TimeoutError, BlockingIOError) :
+			return None
 		except Exception :
 			return None
 

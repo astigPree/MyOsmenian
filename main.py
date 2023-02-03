@@ -93,6 +93,7 @@ class AnimateFinding(ModalView):
 	def closedPopup(self, *args):
 		self.dismiss()
 		Clock.schedule_once(self.resetData, 1 / 2)
+		self.found = False
 
 	def resetData(self, *args):
 		self.ids["mytext"].text = "Finding"
@@ -147,8 +148,6 @@ class FindingPartner(Screen) :
 			self.findingPopup.found = True
 			self.findingPopup.ids["mytext"].text = self.dataIsSent
 			self.dataIsSent = None
-		else:
-			self.findingPopup.found = False
 
 		if self.transactionComplete:
 			self.parent.transition.direction = 'right'
@@ -320,6 +319,7 @@ class MainWidget(ScreenManager) :
 	manage_data = False
 	server_data : dict = {}
 	sound = None
+	sound_stop = False
 	
 	def __init__(self , **kwargs) :
 		super(MainWidget , self).__init__(**kwargs)
@@ -369,26 +369,44 @@ class MainWidget(ScreenManager) :
 			self.permissionPopup.open()
 
 	def startPlayingMusic(self, *args):
-		self.sound = SoundLoader.load("Osmenian.mp3")
+		try:
+			self.sound = SoundLoader.load("Osmenian.mp3")
+		except (AttributeError, OSError, Exception) as err:
+			return
 		if self.sound:
 			print(self.sound)
 			self.sound.loop = True
 			self.sound.volume = .5
 			self.sound.play()
 
+	def stopPlayingMusic(self , *args):
+		if self.sound and not self.sound_stop :
+			self.sound.stop()
+			self.sound_stop = True
+
+	def resumeMusic(self , *args):
+		if self.sound and self.sound_stop :
+			self.sound.play()
+			self.sound_stop = False
+
+
 # ====> App
 class MyOsmenianApp(App) :
+
 	
 	def on_pause(self) :
+		self.root.stopPlayingMusic()
 		if self.root.granted:
 			Clock.schedule_interval(self.root.get_screen("screen2").reduceMyTime , 1)
+
+	def on_resume(self):
+		self.root.resumeMusic()
 		
 	def on_stop(self) :
 		if self.root.granted :
 			self.root.appData.save_data_secured()
 
 	def on_start(self):
-		pass
 		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') and not check_permission('android.permission.READ_EXTERNAL_STORAGE') :
 			request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
 
