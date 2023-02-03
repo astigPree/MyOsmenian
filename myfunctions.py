@@ -92,12 +92,12 @@ class AppData :
 	def content(self , *args) :
 		print(self.__app_data)
 	
-	def get_the_past_data(self) :
+	def get_the_past_data(self , *args) :
 		filename = os.path.join(self.path , self.filename)
 		with open(filename , "r") as jf :
 			self.__app_data = json.load(jf)
 
-	def get_the_past_data_secured(self):
+	def get_the_past_data_secured(self , *args ):
 		filename = os.path.join(self.path, self.filename)
 		with open(filename, "rb") as pf:
 			self.__app_data = pickle.load(pf)
@@ -109,19 +109,19 @@ class AppData :
 			self.save_data()
 		self.get_the_past_data()
 
-	def create_secured(self):
+	def create_secured(self , *args):
 		os.makedirs(self.path, exist_ok=True)
 		filename = os.path.join(self.path, self.filename)
 		if not os.path.exists(filename):
 			self.save_data_secured()
 		self.get_the_past_data_secured()
 
-	def save_data(self) :
+	def save_data(self , *args) :
 		filename = os.path.join(self.path , self.filename)
 		with open(filename , "w") as jf:
 			json.dump(self.__app_data , jf)
 
-	def save_data_secured(self):
+	def save_data_secured(self , *args):
 		filename = os.path.join(self.path, self.filename)
 		with open(filename, "wb") as pf:
 			pickle.dump(self.__app_data, pf)

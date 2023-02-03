@@ -2,9 +2,6 @@ __version__ = "1.0"
 
 from android.permissions import request_permissions , Permission , check_permission
 
-from kivy.core.window import Window
-Window.size = (1800 / 4, 2200 / 4)
-
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager , Screen
 from kivy.uix.modalview import ModalView
