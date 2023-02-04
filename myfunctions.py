@@ -87,42 +87,59 @@ class DataTransfer :
 class AppData :
 	__app_data = { "id" : str(uuid4()) , "used" : 0 , "leave" : 0 }
 	path = os.path.join(storagepath.get_external_storage_dir() , "My Osmenia" )
+	other_path = os.path.join(storagepath.get_application_dir() , "My Osmenia" )
 	filename = "osmenia.ericson"
+	
+	inMainDir = True # if the file created in main directory
 	
 	def content(self , *args) :
 		print(self.__app_data)
 	
 	def get_the_past_data(self , *args) :
-		filename = os.path.join(self.path , self.filename)
+		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
 		with open(filename , "r") as jf :
 			self.__app_data = json.load(jf)
 
 	def get_the_past_data_secured(self , *args ):
-		filename = os.path.join(self.path, self.filename)
+		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
+		os.chmod(filename, 0o444)  #  for permission
 		with open(filename, "rb") as pf:
 			self.__app_data = pickle.load(pf)
 	
 	def create(self , *args) :
 		os.makedirs(self.path , exist_ok=True)
 		filename = os.path.join(self.path , self.filename)
-		if not os.path.exists(filename) :
-			self.save_data()
-		self.get_the_past_data()
+		try : 
+			if not os.path.exists(filename) :
+				self.save_data()
+			self.get_the_past_data()
+		except PermissionError : # change to other path
+			self.inMainDir = False
+			if not os.path.exists(filename) :
+				self.save_data()
+			self.get_the_past_data()
 
 	def create_secured(self , *args):
 		os.makedirs(self.path, exist_ok=True)
 		filename = os.path.join(self.path, self.filename)
-		if not os.path.exists(filename):
-			self.save_data_secured()
-		self.get_the_past_data_secured()
+		try :
+			if not os.path.exists(filename):
+				self.save_data_secured()
+			self.get_the_past_data_secured()
+		except PermissionError : # change to other path
+			self.inMainDir = False
+			if not os.path.exists(filename):
+				self.save_data_secured()
+			self.get_the_past_data_secured()
 
 	def save_data(self , *args) :
-		filename = os.path.join(self.path , self.filename)
+		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
 		with open(filename , "w") as jf:
 			json.dump(self.__app_data , jf)
 
 	def save_data_secured(self , *args):
-		filename = os.path.join(self.path, self.filename)
+		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
+		os.chmod(filename, 0o666) #  for permission
 		with open(filename, "wb") as pf:
 			pickle.dump(self.__app_data, pf)
 	

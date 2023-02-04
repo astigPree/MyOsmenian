@@ -1,6 +1,7 @@
 __version__ = "1.0"
 
 from android.permissions import request_permissions , Permission , check_permission
+request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager , Screen
@@ -405,9 +406,8 @@ class MyOsmenianApp(App) :
 			self.root.appData.save_data_secured()
 
 	def on_start(self):
-		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') and not check_permission('android.permission.READ_EXTERNAL_STORAGE') :
-			request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
-
+		request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
+		
 	def build(self) :
 		Window.bind(on_keyboard=self.key_input)
 		return Builder.load_file("MyDesign.kv")
