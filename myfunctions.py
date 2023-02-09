@@ -87,7 +87,7 @@ class DataTransfer :
 class AppData :
 	__app_data = { "id" : str(uuid4()) , "used" : 0 , "leave" : 0 }
 	path = os.path.join(storagepath.get_external_storage_dir() , "My Osmenia" )
-	other_path = os.path.join(storagepath.get_application_dir() , "My Osmenia" )
+	other_path = os.path.join( os.getcwd() , "My Osmenia" )
 	filename = "osmenia.ericson"
 	
 	inMainDir = True # if the file created in main directory
@@ -102,7 +102,6 @@ class AppData :
 
 	def get_the_past_data_secured(self , *args ):
 		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
-		os.chmod(filename, 0o444)  #  for permission
 		with open(filename, "rb") as pf:
 			self.__app_data = pickle.load(pf)
 	
@@ -127,6 +126,7 @@ class AppData :
 				self.save_data_secured()
 			self.get_the_past_data_secured()
 		except PermissionError : # change to other path
+			print(self.other_path)
 			self.inMainDir = False
 			if not os.path.exists(filename):
 				self.save_data_secured()
@@ -139,7 +139,6 @@ class AppData :
 
 	def save_data_secured(self , *args):
 		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
-		os.chmod(filename, 0o666) #  for permission
 		with open(filename, "wb") as pf:
 			pickle.dump(self.__app_data, pf)
 	
@@ -160,17 +159,7 @@ class AppData :
 		return self.__app_data["leave"]
 
 if __name__ == "__main__" :
-	addr = "0.tcp.ap.ngrok.io"
-	#addr = "localhost"
-	port = 13697
-	#port = 999
-	client = socket.socket( socket.AF_INET , socket.SOCK_STREAM)
-	try :
-		print("connecting...")
-		client.connect(( addr , port ))
-	except Exception as e :
-		print(e)
-
+	pass
 
 
 	

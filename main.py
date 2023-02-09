@@ -407,7 +407,7 @@ class MyOsmenianApp(App) :
 
 	def on_start(self):
 		request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
-		
+
 	def build(self) :
 		Window.bind(on_keyboard=self.key_input)
 		return Builder.load_file("MyDesign.kv")

@@ -26,7 +26,7 @@ osx.python_version = 3
 
 osx.kivy_version = 1.9.1
 
-android.permissions = INTERNET , READ_EXTERNAL_STORAGE , WRITE_EXTERNAL_STORAGE
+android.permissions = WRITE_EXTERNAL_STORAGE , INTERNET , READ_EXTERNAL_STORAGE 
 
 android.archs = arm64-v8a, armeabi-v7a
 
