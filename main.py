@@ -391,7 +391,6 @@ class MainWidget(ScreenManager) :
 
 # ====> App
 class MyOsmenianApp(App) :
-
 	
 	def on_pause(self) :
 		self.root.stopPlayingMusic()

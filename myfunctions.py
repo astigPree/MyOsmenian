@@ -10,7 +10,7 @@ from android.permissions import check_permission
 
 def myInfo() -> str :
 	sentences = [ 
-		"My Osmenia App Is For Fun Only So Be Careful Of What You Does Because We Are Not Responsible Of What Happen To You While Using This App" ,
+		"Mag pahimo ka kan miah san maayo na intro san aton app" ,
 		"" ,
 		"Directions :" ,
 		"   - Click The Gender You Want To Meet" ,
@@ -87,23 +87,26 @@ class DataTransfer :
 class AppData :
 	__app_data = { "id" : str(uuid4()) , "used" : 0 , "leave" : 0 }
 	path = os.path.join(storagepath.get_external_storage_dir() , "My Osmenia" )
-	other_path = os.path.join( os.getcwd() , "My Osmenia" )
 	filename = "osmenia.ericson"
-	
-	inMainDir = True # if the file created in main directory
 	
 	def content(self , *args) :
 		print(self.__app_data)
 	
 	def get_the_past_data(self , *args) :
-		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
-		with open(filename , "r") as jf :
-			self.__app_data = json.load(jf)
+		filename = os.path.join(self.path , self.filename) 
+		try :
+			with open(filename , "r") as jf :
+				self.__app_data = json.load(jf)
+		except PermissionError as e : # change to other path
+			print("[ ! ] Error : {e}")
 
 	def get_the_past_data_secured(self , *args ):
-		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
-		with open(filename, "rb") as pf:
-			self.__app_data = pickle.load(pf)
+		filename = os.path.join(self.path , self.filename) 
+		try :
+			with open(filename, "rb") as pf:
+				self.__app_data = pickle.load(pf)
+		except PermissionError as e : # change to other path
+			print("[ ! ] Error : {e}")
 	
 	def create(self , *args) :
 		os.makedirs(self.path , exist_ok=True)
@@ -112,11 +115,8 @@ class AppData :
 			if not os.path.exists(filename) :
 				self.save_data()
 			self.get_the_past_data()
-		except PermissionError : # change to other path
-			self.inMainDir = False
-			if not os.path.exists(filename) :
-				self.save_data()
-			self.get_the_past_data()
+		except PermissionError as e : # change to other path
+			print("[ ! ] Error : {e}")
 
 	def create_secured(self , *args):
 		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') :
@@ -127,24 +127,29 @@ class AppData :
 			if not os.path.exists(filename):
 				self.save_data_secured()
 			self.get_the_past_data_secured()
-		except PermissionError : # change to other path
-			print(self.other_path)
-			self.inMainDir = False
-			if not os.path.exists(filename):
-				self.save_data_secured()
-			self.get_the_past_data_secured()
+		except PermissionError as e : # change to other path
+			print("[ ! ] Error : {e}")
+			
 
 	def save_data(self , *args) :
 		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') :
 			return 
-		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
-		with open(filename , "w") as jf:
-			json.dump(self.__app_data , jf)
+		filename = os.path.join(self.path , self.filename) 
+		try :
+			with open(filename , "w") as jf:
+				json.dump(self.__app_data , jf)
+		except PermissionError as e : # change to other path
+			print("[ ! ] Error : {e}")
 
 	def save_data_secured(self , *args):
-		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
-		with open(filename, "wb") as pf:
-			pickle.dump(self.__app_data, pf)
+		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') :
+			return 
+		filename = os.path.join(self.path , self.filename) 
+		try :
+			with open(filename, "wb") as pf:
+				pickle.dump(self.__app_data, pf)
+		except PermissionError as e : # change to other path
+			print("[ ! ] Error : {e}")
 	
 	# ---->  list of activities 
 	def get_id(self , *args) :
