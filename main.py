@@ -1,7 +1,7 @@
 __version__ = "1.0"
 
 from android.permissions import request_permissions , Permission , check_permission
-request_permissions( [ Permission.INTERNET , Permission.READ_EXTERNAL_STORAGE , Permission.WRITE_EXTERNAL_STORAGE ])
+request_permissions( [ Permission.WRITE_EXTERNAL_STORAGE , Permission.READ_EXTERNAL_STORAGE , Permission.INTERNET ])
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager , Screen

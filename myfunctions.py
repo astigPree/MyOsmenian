@@ -6,7 +6,7 @@ import os
 import socket
 from typing import Union
 import pickle
-
+from android.permissions import check_permission
 
 def myInfo() -> str :
 	sentences = [ 
@@ -119,6 +119,8 @@ class AppData :
 			self.get_the_past_data()
 
 	def create_secured(self , *args):
+		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') :
+			return 
 		os.makedirs(self.path, exist_ok=True)
 		filename = os.path.join(self.path, self.filename)
 		try :
@@ -133,6 +135,8 @@ class AppData :
 			self.get_the_past_data_secured()
 
 	def save_data(self , *args) :
+		if not check_permission('android.permission.WRITE_EXTERNAL_STORAGE') :
+			return 
 		filename = os.path.join(self.path , self.filename) if self.inMainDir else os.path.join(self.other_path , self.filename)
 		with open(filename , "w") as jf:
 			json.dump(self.__app_data , jf)
