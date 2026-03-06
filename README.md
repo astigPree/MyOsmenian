@@ -8,8 +8,6 @@
 ![Python-for-Android](https://img.shields.io/badge/Build-Python--for--Android-red)
 ![Kivy iOS](https://img.shields.io/badge/iOS-Kivy--iOS-lightgrey)
 
-A campus-based anonymous chat application inspired by Omegle, designed specifically for **Osmeña Colleges students** to meet new people, start conversations, and build friendships within the campus community.
-
 ---
 
 # Short Introduction
