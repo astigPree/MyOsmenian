@@ -193,11 +193,11 @@ buildozer android debug
 ---
 
 # App Images
-Main Screen of MyOsmenian
+# Main Screen of MyOsmenian
 ![Image 1](App_Images/home.jpg)
-App Content Preview
+# App Content Preview
 ![Image 2](App_Images/content.jpg)
-Exit Preview
+# Exit Preview
 ![Image 3](App_Images/exit.jpg)
 
  
