@@ -194,17 +194,12 @@ buildozer android debug
 
 ---
 
-# Example Images
-
-You can watch a demonstration of the application here:
-
-``` 
-## Main Screen of MyOsmenian
+# App Images
+Main Screen of MyOsmenian
 ![Image 1](App_Images/home.jpg)
-## App Content Preview
+App Content Preview
 ![Image 2](App_Images/content.jpg)
-## Exit Preview
+Exit Preview
 ![Image 3](App_Images/exit.jpg)
-```
 
  
