@@ -170,7 +170,7 @@ These improvements would make the platform more reliable and production-ready.
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/MyOsmenian.git
+git clone https://github.com/astigPree/MyOsmenian.git
 cd MyOsmenian
 ```
 
